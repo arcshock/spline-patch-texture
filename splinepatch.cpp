@@ -1,10 +1,10 @@
-/* Bucky Frost
- * Paul Gentemann
+/* Authors: Bucky Frost
+ * 	    Paul Gentemann
  * CS 381
- * File Name : splinepatch.cpp
- * Last Modified : Mon 11 Nov 2013 02:41:22 PM AKST
- * Description : A pair of spline plains, patched together, that will
- * make a wave upon user input.
+ * File Name: splinepatch.cpp
+ * Last Modified: Mon Dec  9 04:50:40 AKST 2013
+ * Description: A pair of spline plains, patched together, that will
+ *     make a wave upon user input that are textured.
  */
 
 // OpenGL/GLUT includes - DO THESE FIRST
@@ -20,17 +20,20 @@ using std::exit;
 #ifdef _MSC_VER          // Tell MS-Visual Studio about GLEW lib
 # pragma comment(lib, "glew32.lib")
 #endif
-#include "lib381/bitmapprinter.h"
-#include "lib381/glslprog.h"    // For GLSL code-handling functions
+
+#include "lib381/bitmapprinter.h" // For in app doc
+#include "lib381/glslprog.h"      // For GLSL code-handling functions
+#include "lib381/globj.h" 	  // For class Tex2D
+#include "lib381/tshapes.h"	  // For shape drawing funcs
+
 #include <string>
 using std::string;
 #include <iostream>
-using std::cerr; using std::endl;
+using std::cerr; using std::endl; using std::cout;
 #include <sstream>
 using std::ostringstream;
 #include <iomanip>
-using std::setprecision;
-using std::fixed;
+using std::setprecision; using std::fixed;
 #include <cmath>
 using std::sin; using std::exp;
 
@@ -60,6 +63,14 @@ string vshader1fname;          // Filename for vertex shader source
 string fshader1fname;          // Filename for fragment shader source
 GLhandleARB prog1;             // GLSL Program Object
 GLfloat shaderfloat1 = 1.;
+
+// Textures
+Tex2D tex0, tex1;
+const int IMG_WIDTH = 256, IMG_HEIGHT = IMG_WIDTH;
+GLubyte teximage1[IMG_HEIGHT*IMG_WIDTH][3];  // Temp storage for texture
+
+int min_nonmip; // 0=NEAREST, 1=LINEAR
+int min_mip;	// 0=NEAREST, 1=LINEAR, 2=NON
 
 // Camera 
 GLdouble viewmatrix[16];       
@@ -120,6 +131,14 @@ void drawBezierPatch(int subdivs, GLdouble *cpts)
 // The GLUT display function
 void myDisplay()
 {
+    GLenum minfilters[] = 
+    { GL_NEAREST_MIPMAP_NEAREST,
+      GL_LINEAR_MIPMAP_NEAREST,
+      GL_NEAREST_MIPMAP_LINEAR,
+      GL_LINEAR_MIPMAP_LINEAR,
+      GL_NEAREST,
+      GL_LINEAR };
+
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
